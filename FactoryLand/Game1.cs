@@ -13,7 +13,9 @@ namespace FactoryLand
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private InputManager inputManager = new InputManager();
+
         private Camera camera;
+        private Terrain terrain = new Terrain();
 
         public Game1()
         {
@@ -29,11 +31,19 @@ namespace FactoryLand
         /// </summary>
         protected override void Initialize()
         {
+            TextureManager.Initialize(Content);
+
             inputManager.AddInputReciever(this, InputType.CameraUp, InputState.Down);
             inputManager.AddInputReciever(this, InputType.CameraDown, InputState.Down);
             inputManager.AddInputReciever(this, InputType.CameraLeft, InputState.Down);
             inputManager.AddInputReciever(this, InputType.CameraRight, InputState.Down);
             inputManager.AddInputReciever(this, InputType.CameraZoom, InputState.Down);
+
+            inputManager.AddKeyBinding(Keys.W, InputType.CameraUp);
+            inputManager.AddKeyBinding(Keys.S, InputType.CameraDown);
+            inputManager.AddKeyBinding(Keys.A, InputType.CameraLeft);
+            inputManager.AddKeyBinding(Keys.D, InputType.CameraRight);
+            inputManager.AddMouseBinding(MouseAction.Scroll, InputType.CameraZoom);
 
             base.Initialize();
         }
@@ -45,9 +55,12 @@ namespace FactoryLand
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            camera = new Camera(GraphicsDevice.Viewport);
             IsMouseVisible = true;
             Window.AllowUserResizing = true;
             Window.ClientSizeChanged += Window_ClientSizeChanged;
+
+            camera.Zoom = 0.1F;
         }
 
         private void Window_ClientSizeChanged(object sender, System.EventArgs e)
@@ -71,6 +84,7 @@ namespace FactoryLand
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            inputManager.Update();
             base.Update(gameTime);
         }
 
@@ -81,6 +95,11 @@ namespace FactoryLand
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.Black);
+            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise, null, camera.GetTransform());
+
+            terrain.Draw(spriteBatch, gameTime);
+
+            spriteBatch.End();
             base.Draw(gameTime);
         }
 
@@ -101,7 +120,7 @@ namespace FactoryLand
                     camera.Location += new Vector2(10, 0);
                     break;
                 case InputType.CameraZoom:
-                    camera.Zoom += scrollDelta / 2400f;
+                    camera.Zoom += scrollDelta / 24000f;
                     break;
             }
         }
