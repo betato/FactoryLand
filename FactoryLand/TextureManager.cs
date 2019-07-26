@@ -10,22 +10,7 @@ namespace FactoryLand
 {
     enum TextureId
     {
-        Terrain_00 = 0,
-        Terrain_01 = 1,
-        Terrain_02 = 2,
-        Terrain_03 = 3,
-        Terrain_04 = 4,
-        Terrain_05 = 5,
-        Terrain_06 = 6,
-        Terrain_07 = 7,
-        Terrain_08 = 8,
-        Terrain_09 = 9,
-        Terrain_10 = 10,
-        Terrain_11 = 11,
-        Terrain_12 = 12,
-        Terrain_13 = 13,
-        Terrain_14 = 14,
-        Terrain_15 = 15,
+        
     }
 
     static class TextureManager
