@@ -1,6 +1,7 @@
 ﻿using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System;
 using System.Collections.Generic;
 
 namespace FactoryLand
@@ -15,7 +16,7 @@ namespace FactoryLand
         private InputManager inputManager = new InputManager();
 
         private Camera camera;
-        private Terrain terrain = new Terrain();
+        private Terrain terrain;
 
         public Game1()
         {
@@ -45,6 +46,7 @@ namespace FactoryLand
             inputManager.AddKeyBinding(Keys.D, InputType.CameraRight);
             inputManager.AddMouseBinding(MouseAction.Scroll, InputType.CameraZoom);
 
+
             base.Initialize();
         }
 
@@ -55,12 +57,15 @@ namespace FactoryLand
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
+            DebugRenderer.Initialize(GraphicsDevice);
             camera = new Camera(GraphicsDevice.Viewport);
             IsMouseVisible = true;
             Window.AllowUserResizing = true;
             Window.ClientSizeChanged += Window_ClientSizeChanged;
 
-            camera.Zoom = 0.1F;
+            camera.Zoom = 0.1f;
+            camera.Location = new Vector2(Chunk.SIZE * Tile.SIZE * 0.5f, Chunk.SIZE * Tile.SIZE * 0.5f);
+            terrain = new Terrain();
         }
 
         private void Window_ClientSizeChanged(object sender, System.EventArgs e)
@@ -98,8 +103,10 @@ namespace FactoryLand
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise, null, camera.GetTransform());
 
             terrain.Draw(spriteBatch, gameTime);
-
             spriteBatch.End();
+
+            DebugRenderer.Draw();
+
             base.Draw(gameTime);
         }
 
