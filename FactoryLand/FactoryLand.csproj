@@ -46,6 +46,7 @@
     <Compile Include="Chunk.cs" />
     <Compile Include="DebugRenderer.cs" />
     <Compile Include="Game1.cs" />
+    <Compile Include="Generator.cs" />
     <Compile Include="Input\IInputReciever.cs" />
     <Compile Include="Input\InputManager.cs" />
     <Compile Include="Program.cs" />

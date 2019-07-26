@@ -8,7 +8,7 @@ namespace FactoryLand
 {
     class Tile
     {
-        public static readonly int SIZE = 64;
+        public const int SIZE = 64;
 
         public bool Land { get; set; }
 

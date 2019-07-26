@@ -11,11 +11,20 @@ namespace FactoryLand
     class Terrain
     {
         private List<Chunk> chunks = new List<Chunk>();
+        private Generator generator;
 
         public Terrain()
         {
-            Chunk chunk = new Chunk(new Point(0, 0));
-            chunks.Add(chunk);
+            generator = new Generator(0);
+            for (int y = 0; y < 2; y++)
+            {
+                for (int x = 0; x < 2; x++)
+                {
+                    Chunk chunk = new Chunk(new Point(x, y));
+                    generator.GenerateChunk(chunk);
+                    chunks.Add(chunk);
+                }
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch, GameTime gameTime)
