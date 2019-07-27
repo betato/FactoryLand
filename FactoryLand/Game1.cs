@@ -101,11 +101,13 @@ namespace FactoryLand
         {
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise, null, camera.GetTransform());
-
-            terrain.Draw(spriteBatch, gameTime);
+            terrain.Draw(spriteBatch, gameTime, camera);
             spriteBatch.End();
 
-            DebugRenderer.Draw();
+            DebugRenderer.AddText(
+                "View: " + camera.GetViewRect().ToString() + "\nZoom: " + camera.Zoom.ToString() + 
+                "\nLocation: " + camera.Location.ToString() + "\nViewport Bounds: " + camera.Viewport.Bounds.ToString(), 
+                "Camera Parameters");
 
             DebugRenderer.Draw();
             base.Draw(gameTime);

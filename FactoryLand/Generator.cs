@@ -62,14 +62,21 @@ namespace FactoryLand
         //    return (uint)((0xFF << 24) | (shade << 16) | (shade << 8) | (shade << 0));
         //}
 
+        UInt32 Hash(UInt32 a)
+        {
+            a -= (a << 6);
+            a ^= (a >> 17);
+            a -= (a << 9);
+            a ^= (a << 4);
+            a -= (a << 3);
+            a ^= (a << 10);
+            a ^= (a >> 15);
+            return a;
+        }
+
         private float GradientDot(float x, float y, int ix, int iy)
         {
             return ((x - ix) * gradients[ix, iy].X + (y - iy) * gradients[ix, iy].Y);
-        }
-
-        private float Lerp(float f1, float f2, float s)
-        {
-            return f1 * (1.0f - s) + f2 * s;
         }
 
         private float Fade(float f)
@@ -89,9 +96,9 @@ namespace FactoryLand
             float sy = Fade(y - (float)y0);
 
             // Interpolate between grid gradients
-            float ix0 = Lerp(GradientDot(x, y, x0, y0), GradientDot(x, y, x1, y0), sx);
-            float ix1 = Lerp(GradientDot(x, y, x0, y1), GradientDot(x, y, x1, y1), sx);
-            return Lerp(ix0, ix1, sy);
+            float ix0 = MathHelper.Lerp(GradientDot(x, y, x0, y0), GradientDot(x, y, x1, y0), sx);
+            float ix1 = MathHelper.Lerp(GradientDot(x, y, x0, y1), GradientDot(x, y, x1, y1), sx);
+            return MathHelper.Lerp(ix0, ix1, sy);
         }
     }
 }
