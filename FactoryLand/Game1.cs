@@ -113,22 +113,36 @@ namespace FactoryLand
 
         public void RecieveInput(InputType input, InputState state, Point mousePos, int scrollDelta)
         {
+            int movementSpeed = 10;
+            if (Keyboard.GetState().IsKeyDown(Keys.LeftShift))
+            {
+                movementSpeed = 100;
+            }
+            else if (Keyboard.GetState().IsKeyDown(Keys.LeftControl))
+            {
+                movementSpeed = 1;
+            }
+
             switch (input)
             {
                 case InputType.CameraUp:
-                    camera.Location += new Vector2(0, -10);
+                    camera.Location += new Vector2(0, -movementSpeed);
                     break;
                 case InputType.CameraDown:
-                    camera.Location += new Vector2(0, 10);
+                    camera.Location += new Vector2(0, movementSpeed);
                     break;
                 case InputType.CameraLeft:
-                    camera.Location += new Vector2(-10, 0);
+                    camera.Location += new Vector2(-movementSpeed, 0);
                     break;
                 case InputType.CameraRight:
-                    camera.Location += new Vector2(10, 0);
+                    camera.Location += new Vector2(movementSpeed, 0);
                     break;
                 case InputType.CameraZoom:
                     camera.Zoom += scrollDelta / 24000f;
+                    if (camera.Zoom < 0.05f)
+                    {
+                        camera.Zoom = 0.05f;
+                    }
                     break;
             }
         }
