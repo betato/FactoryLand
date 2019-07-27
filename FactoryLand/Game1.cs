@@ -57,7 +57,7 @@ namespace FactoryLand
         protected override void LoadContent()
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            DebugRenderer.Initialize(GraphicsDevice);
+            DebugRenderer.Initialize(GraphicsDevice, Content.Load<SpriteFont>("Default"));
             camera = new Camera(GraphicsDevice.Viewport);
             IsMouseVisible = true;
             Window.AllowUserResizing = true;
@@ -107,6 +107,7 @@ namespace FactoryLand
 
             DebugRenderer.Draw();
 
+            DebugRenderer.Draw();
             base.Draw(gameTime);
         }
 
