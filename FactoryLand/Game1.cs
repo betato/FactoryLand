@@ -14,6 +14,7 @@ namespace FactoryLand
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
         private InputManager inputManager = new InputManager();
+        FramerateCounter fpsCounter = new FramerateCounter();
 
         private Camera camera;
         private Terrain terrain;
@@ -99,6 +100,7 @@ namespace FactoryLand
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Draw(GameTime gameTime)
         {
+            fpsCounter.Update(gameTime);
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise, null, camera.GetTransform());
             terrain.Draw(spriteBatch, gameTime, camera);
@@ -108,6 +110,8 @@ namespace FactoryLand
                 "View: " + camera.GetViewRect().ToString() + "\nZoom: " + camera.Zoom.ToString() + 
                 "\nLocation: " + camera.Location.ToString() + "\nViewport Bounds: " + camera.Viewport.Bounds.ToString(), 
                 "Camera Parameters");
+
+            DebugRenderer.AddText(fpsCounter.AverageFps.ToString(), "FPS");
 
             DebugRenderer.Draw();
             base.Draw(gameTime);
