@@ -10,7 +10,8 @@ namespace FactoryLand
 {
     enum TextureId
     {
-        
+        Test = 0,
+        Terrain = 1
     }
 
     static class TextureManager
@@ -27,6 +28,10 @@ namespace FactoryLand
 
         private static void LoadTextures()
         {
+            // Single Textures
+            textures.Add(TextureId.Test, ContentManager.Load<Texture2D>("Test"));
+            textures.Add(TextureId.Terrain, ContentManager.Load<Texture2D>("Terrain//TerrainAtlas"));
+            // Terrains
             for (int i = 0; i <= 15; i++)
             {
                 terrains.Add(i, ContentManager.Load<Texture2D>("Terrain//" + i.ToString()));

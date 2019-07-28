@@ -1,4 +1,5 @@
 ﻿using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace FactoryLand
 
         public Point Location { get; set; }
         public Tile[,] Tiles { get; private set; } = new Tile[SIZE, SIZE];
+        public int[,] GraphicsTiles { get; set; } = new int[SIZE, SIZE];
 
         public Chunk(Point location)
         {

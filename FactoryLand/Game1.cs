@@ -91,6 +91,7 @@ namespace FactoryLand
         protected override void Update(GameTime gameTime)
         {
             inputManager.Update();
+            terrain.UpdateChunkGraphics(camera);
             base.Update(gameTime);
         }
 
@@ -103,7 +104,7 @@ namespace FactoryLand
             fpsCounter.Update(gameTime);
             GraphicsDevice.Clear(Color.Black);
             spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise, null, camera.GetTransform());
-            terrain.Draw(spriteBatch, gameTime, camera);
+            terrain.Draw(GraphicsDevice, camera);
             spriteBatch.End();
 
             DebugRenderer.AddText(
@@ -132,10 +133,10 @@ namespace FactoryLand
             switch (input)
             {
                 case InputType.CameraUp:
-                    camera.Location += new Vector2(0, -movementSpeed);
+                    camera.Location += new Vector2(0, movementSpeed);
                     break;
                 case InputType.CameraDown:
-                    camera.Location += new Vector2(0, movementSpeed);
+                    camera.Location += new Vector2(0, -movementSpeed);
                     break;
                 case InputType.CameraLeft:
                     camera.Location += new Vector2(-movementSpeed, 0);
@@ -144,7 +145,7 @@ namespace FactoryLand
                     camera.Location += new Vector2(movementSpeed, 0);
                     break;
                 case InputType.CameraZoom:
-                    camera.Zoom += scrollDelta / 24000f;
+                    camera.Zoom += scrollDelta / 2400f;
                     if (camera.Zoom < 0.05f)
                     {
                         camera.Zoom = 0.05f;
