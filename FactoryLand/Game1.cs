@@ -182,11 +182,11 @@ namespace FactoryLand
                     camera.Location += new Vector2(movementSpeed, 0);
                     break;
                 case InputType.CameraZoom:
-                    if (scrollDelta > 0)
+                    if (scrollDelta > 0 && camera.Zoom < 16)
                     {
                         camera.Zoom *= 2;
                     }
-                    if (scrollDelta < 0)
+                    if (scrollDelta < 0 && camera.Zoom > 0.0625f)
                     {
                         camera.Zoom /= 2;
                     }

@@ -10,8 +10,9 @@ namespace FactoryLand
     class Generator
     {
         private const float LAND_THRESHOLD = -0.1f;
-        private const float MAP_SCALE = 0.1f;
-        private const int GRADIENT_MAP_SIZE = (int)(Chunk.SIZE * MAP_SCALE) + 2;
+        // Layer sizes should be even and greater than 0
+        private const int FIRST_LAYER_SIZE = 2;
+        private const int SECOND_LAYER_SIZE = 6;
 
         public int Seed { get; private set; }
         private Random rng = new Random();
@@ -22,56 +23,50 @@ namespace FactoryLand
             Seed = seed;
         }
 
+        public int Random(int x, int y)
+        {
+            //return ((x * 735632791) % 180 + (y * 694847539) % 180);
+            //return x * 4 + 4 * y;
+            return rng.Next(0, 360);
+        }
+
         public void GenerateChunk(Chunk chunk)
         {
-            // Generate gradient grid
-
-            gradients = new Vector2[GRADIENT_MAP_SIZE, GRADIENT_MAP_SIZE];
-            for (int y = 0; y < GRADIENT_MAP_SIZE; y++)
-            {
-                for (int x = 0; x < GRADIENT_MAP_SIZE; x++)
-                {
-                    gradients[x, y] = new Vector2(rng.Next(-100, 100), rng.Next(-100, 100));
-                    gradients[x, y].Normalize();
-                }
-            }
-            // Generate tiles
+            float[,] elevations = new float[Chunk.SIZE, Chunk.SIZE];
+            GenerateLayer(elevations, FIRST_LAYER_SIZE, 1, chunk.Location);
+            GenerateLayer(elevations, SECOND_LAYER_SIZE, 1, chunk.Location);
             for (int y = 0; y < Chunk.SIZE; y++)
             {
                 for (int x = 0; x < Chunk.SIZE; x++)
                 {
-                    chunk.Tiles[x, y] = new Tile(Perlin(x * MAP_SCALE, y * MAP_SCALE) >= LAND_THRESHOLD? true : false);
+                    chunk.Tiles[x, y] = new Tile(elevations[x, y] >= LAND_THRESHOLD ? true : false);
                 }
             }
-
-            //int DebugSquareSize = 1000;
-            //UInt32[] pixels = new UInt32[DebugSquareSize * DebugSquareSize];
-            //for (int i = 0; i<DebugSquareSize; i++)
-            //{
-            //    for (int j = 0; j<DebugSquareSize; j++)
-            //    {
-            //        pixels[i + j * DebugSquareSize] = GrayscaleToColor((byte)((Perlin(i* 0.0064f, j* 0.0064f) + 1) * 128));
-            //    }
-            //}
-
-            //DebugRenderer.AddPixels(pixels, new Rectangle(50, 50, DebugSquareSize, DebugSquareSize));
         }
 
-        //private uint GrayscaleToColor(byte shade)
-        //{
-        //    return (uint)((0xFF << 24) | (shade << 16) | (shade << 8) | (shade << 0));
-        //}
-
-        UInt32 Hash(UInt32 a)
+        private void GenerateLayer(float[,] elevations, int layerSize, float weight, Point chunkLocation)
         {
-            a -= (a << 6);
-            a ^= (a >> 17);
-            a -= (a << 9);
-            a ^= (a << 4);
-            a -= (a << 3);
-            a ^= (a << 10);
-            a ^= (a >> 15);
-            return a;
+            // Generate gradient grid
+            int gridSize = layerSize + 1;
+            int gridOffset = layerSize - 1;
+            gradients = new Vector2[gridSize, gridSize];
+            for (int y = 0; y < gridSize; y++)
+            {
+                for (int x = 0; x < gridSize; x++)
+                {
+                    int random = Random(x + gridOffset * chunkLocation.X, y + gridOffset * chunkLocation.Y);
+                    gradients[x, y] = new Vector2((float)Math.Cos(MathHelper.ToRadians(random)), (float)Math.Sin(MathHelper.ToRadians(random)));
+                }
+            }
+            // Generate tiles
+            float scale = gridOffset / (Chunk.SIZE - 1f);
+            for (int y = 0; y < Chunk.SIZE; y++)
+            {
+                for (int x = 0; x < Chunk.SIZE; x++)
+                {
+                    elevations[x, y] += Perlin(0.5f + x * scale, 0.5f + y * scale) * weight;
+                }
+            }
         }
 
         private float GradientDot(float x, float y, int ix, int iy)
