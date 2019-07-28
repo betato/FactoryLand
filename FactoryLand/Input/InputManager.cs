@@ -23,7 +23,9 @@ namespace FactoryLand
         CameraDown = 5,
         CameraLeft = 6,
         CameraRight = 7,
-        CameraZoom = 8
+        CameraZoom = 8,
+        
+        Click = 9
     }
 
     /// <summary>

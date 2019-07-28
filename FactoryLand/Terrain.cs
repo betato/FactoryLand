@@ -198,7 +198,7 @@ namespace FactoryLand
         public void UpdateChunkGraphics(Camera camera)
         {
             int chunkPixelSize = Chunk.SIZE * Tile.SIZE;
-            Rectangle viewRect = camera.GetViewRect();
+            Rectangle viewRect = new Rectangle();//= camera.GetViewRect();
             int xMin = viewRect.X / chunkPixelSize - (viewRect.X < 0 ? 1 : 0);
             int xMax = viewRect.Right / chunkPixelSize + (viewRect.Right > 0 ? 1 : 0);
             int yMin = viewRect.Y / chunkPixelSize - (viewRect.Y < 0 ? 1 : 0);
@@ -206,7 +206,7 @@ namespace FactoryLand
 
             if (LastXMin == xMin && xMax == LastXMax && LastYMin == yMin && LastYMax == yMax)
             {
-                return;
+                //return;
             }
 
             LastXMin = xMin;
@@ -326,14 +326,10 @@ namespace FactoryLand
             //return new Vector2(right ? 0.0625f : 0f, bottom ? 1f : 0f);
         }
         
-        public void Draw(GraphicsDevice graphicsDevice, Camera camera)
+        public void Draw(GraphicsDevice graphicsDevice, BasicEffect effect)
         {
-            BasicEffect effect = new BasicEffect(graphicsDevice);
-            effect.View = Matrix.CreateLookAt(new Vector3(camera.Location.X, camera.Location.Y, camera.Zoom * 10000), new Vector3(camera.Location.X, camera.Location.Y, 0), new Vector3(0, 1, 0));
             effect.TextureEnabled = true;
             effect.Texture = TextureManager.GetTexture(TextureId.Terrain);
-            effect.Projection = Matrix.CreatePerspectiveFieldOfView(MathHelper.ToRadians(45), camera.Viewport.AspectRatio, 0.01f, 100000f);
-            //effect.Projection = Matrix.CreateOrthographic(graphicsDevice.Viewport.Width, graphicsDevice.Viewport.Height, 0.01f, 100000f);
 
             RasterizerState rasterizerState = new RasterizerState();
             rasterizerState.CullMode = CullMode.None;
@@ -356,7 +352,6 @@ namespace FactoryLand
             vertexBuffer.Dispose();
             indexBuffer.Dispose();
             rasterizerState.Dispose();
-            effect.Dispose();
 
             //using (VertexBuffer buffer = new VertexBuffer(graphicsDevice, VertexPositionNormalTexture.VertexDeclaration, NUM_VERTICES, BufferUsage.WriteOnly))
             //{

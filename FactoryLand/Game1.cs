@@ -13,6 +13,7 @@ namespace FactoryLand
     {
         private GraphicsDeviceManager graphics;
         private SpriteBatch spriteBatch;
+        private BasicEffect effect; // Kind of a shader
         private InputManager inputManager = new InputManager();
         FramerateCounter fpsCounter = new FramerateCounter();
 
@@ -40,15 +41,22 @@ namespace FactoryLand
             inputManager.AddInputReciever(this, InputType.CameraLeft, InputState.Down);
             inputManager.AddInputReciever(this, InputType.CameraRight, InputState.Down);
             inputManager.AddInputReciever(this, InputType.CameraZoom, InputState.Down);
+            inputManager.AddInputReciever(this, InputType.Click, InputState.Pressed);
 
             inputManager.AddKeyBinding(Keys.W, InputType.CameraUp);
             inputManager.AddKeyBinding(Keys.S, InputType.CameraDown);
             inputManager.AddKeyBinding(Keys.A, InputType.CameraLeft);
             inputManager.AddKeyBinding(Keys.D, InputType.CameraRight);
             inputManager.AddMouseBinding(MouseAction.Scroll, InputType.CameraZoom);
+            inputManager.AddMouseBinding(MouseAction.LeftButton, InputType.Click);
 
 
             base.Initialize();
+        }
+
+        private void UpdateProjection()
+        {
+            effect.Projection = Matrix.CreateOrthographic(GraphicsDevice.Viewport.Width, GraphicsDevice.Viewport.Height, 0.01f, 100000f);
         }
 
         /// <summary>
@@ -59,19 +67,22 @@ namespace FactoryLand
         {
             spriteBatch = new SpriteBatch(GraphicsDevice);
             DebugRenderer.Initialize(GraphicsDevice, Content.Load<SpriteFont>("Default"));
-            camera = new Camera(GraphicsDevice.Viewport);
+
+            camera = new Camera();
+            camera.Location = new Vector2(Chunk.SIZE * Tile.SIZE * 0.5f, Chunk.SIZE * Tile.SIZE * 0.5f);
+            effect = new BasicEffect(GraphicsDevice);
+            UpdateProjection();
+
             IsMouseVisible = true;
             Window.AllowUserResizing = true;
             Window.ClientSizeChanged += Window_ClientSizeChanged;
-
-            camera.Zoom = 0.1f;
-            camera.Location = new Vector2(Chunk.SIZE * Tile.SIZE * 0.5f, Chunk.SIZE * Tile.SIZE * 0.5f);
+            
             terrain = new Terrain();
         }
 
         private void Window_ClientSizeChanged(object sender, System.EventArgs e)
         {
-            camera.Viewport = GraphicsDevice.Viewport;
+            UpdateProjection();
         }
 
         /// <summary>
@@ -103,14 +114,15 @@ namespace FactoryLand
         {
             fpsCounter.Update(gameTime);
             GraphicsDevice.Clear(Color.Black);
-            spriteBatch.Begin(SpriteSortMode.Immediate, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.Default, RasterizerState.CullCounterClockwise, null, camera.GetTransform());
-            terrain.Draw(GraphicsDevice, camera);
-            spriteBatch.End();
+
+            effect.View = camera.View;
+
+
+            terrain.Draw(GraphicsDevice, effect);
 
             DebugRenderer.AddText(
-                "View: " + camera.GetViewRect().ToString() + "\nZoom: " + camera.Zoom.ToString() + 
-                "\nLocation: " + camera.Location.ToString() + "\nViewport Bounds: " + camera.Viewport.Bounds.ToString(), 
-                "Camera Parameters");
+                "Zoom: " + camera.Zoom.ToString() + "\nLocation: " + camera.Location.ToString() + 
+                "\nViewport Bounds: " + GraphicsDevice.Viewport.Bounds.ToString(), "Camera/View Parameters");
 
             DebugRenderer.AddText(fpsCounter.AverageFps.ToString(), "FPS");
 
@@ -120,6 +132,12 @@ namespace FactoryLand
 
         public void RecieveInput(InputType input, InputState state, Point mousePos, int scrollDelta)
         {
+            if (input == InputType.Click)
+            {
+                Vector3 click = GraphicsDevice.Viewport.Unproject(new Vector3(mousePos.X, mousePos.Y, 0), effect.Projection, effect.View, effect.World);
+                DebugRenderer.AddText(String.Format("X:{0} Y:{1}", click.X, click.Y), "Last Click Location");
+            }
+
             int movementSpeed = 10;
             if (Keyboard.GetState().IsKeyDown(Keys.LeftShift))
             {
@@ -145,10 +163,13 @@ namespace FactoryLand
                     camera.Location += new Vector2(movementSpeed, 0);
                     break;
                 case InputType.CameraZoom:
-                    camera.Zoom += scrollDelta / 2400f;
-                    if (camera.Zoom < 0.05f)
+                    if (scrollDelta > 0)
                     {
-                        camera.Zoom = 0.05f;
+                        camera.Zoom *= 2;
+                    }
+                    if (scrollDelta < 0)
+                    {
+                        camera.Zoom /= 2;
                     }
                     break;
             }
