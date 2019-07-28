@@ -8,7 +8,7 @@ namespace FactoryLand
 {
     class Tile
     {
-        public const int SIZE = 64;
+        public const int PIXEL_LENGTH = 64;
 
         public bool Land { get; set; }
 

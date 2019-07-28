@@ -69,8 +69,9 @@ namespace FactoryLand
             DebugRenderer.Initialize(GraphicsDevice, Content.Load<SpriteFont>("Default"));
 
             camera = new Camera();
-            camera.Location = new Vector2(Chunk.SIZE * Tile.SIZE * 0.5f, Chunk.SIZE * Tile.SIZE * 0.5f);
+            camera.Location = new Vector2(Chunk.SIZE * Tile.PIXEL_LENGTH * 0.5f, Chunk.SIZE * Tile.PIXEL_LENGTH * 0.5f);
             effect = new BasicEffect(GraphicsDevice);
+            effect.World *= Matrix.CreateScale(Tile.PIXEL_LENGTH); // Scale tiles drawn at 1x1 to full pixel size
             UpdateProjection();
 
             IsMouseVisible = true;
@@ -102,7 +103,9 @@ namespace FactoryLand
         protected override void Update(GameTime gameTime)
         {
             inputManager.Update();
-            terrain.UpdateChunkGraphics(camera);
+            
+            terrain.UpdateChunkGraphics(GetScreenWorldBounds());
+
             base.Update(gameTime);
         }
 
@@ -122,7 +125,8 @@ namespace FactoryLand
 
             DebugRenderer.AddText(
                 "Zoom: " + camera.Zoom.ToString() + "\nLocation: " + camera.Location.ToString() + 
-                "\nViewport Bounds: " + GraphicsDevice.Viewport.Bounds.ToString(), "Camera/View Parameters");
+                "\nViewport Bounds: " + GraphicsDevice.Viewport.Bounds.ToString() + "\nWorld Bounds: " + 
+                GetScreenWorldBounds().ToString(), "Camera/View Parameters");
 
             DebugRenderer.AddText(fpsCounter.AverageFps.ToString(), "FPS");
 
@@ -130,11 +134,26 @@ namespace FactoryLand
             base.Draw(gameTime);
         }
 
+        // (x, y, z, w) = (Lower X, Lower Y, Higher X, Higher Y)
+        public Vector4 GetScreenWorldBounds()
+        {
+            Rectangle screenBounds = GraphicsDevice.Viewport.Bounds;
+            Vector2 topLeft = ScreenToWorld(screenBounds.Location.ToVector2());
+            Vector2 bottomRight = ScreenToWorld((screenBounds.Size - screenBounds.Location).ToVector2());
+            return new Vector4(topLeft.X, bottomRight.Y, bottomRight.X, topLeft.Y);
+        }
+
+        public Vector2 ScreenToWorld(Vector2 point)
+        {
+            Vector3 click = GraphicsDevice.Viewport.Unproject(new Vector3(point.X, point.Y, 0), effect.Projection, effect.View, effect.World);
+            return new Vector2(click.X, click.Y);
+        }
+
         public void RecieveInput(InputType input, InputState state, Point mousePos, int scrollDelta)
         {
             if (input == InputType.Click)
             {
-                Vector3 click = GraphicsDevice.Viewport.Unproject(new Vector3(mousePos.X, mousePos.Y, 0), effect.Projection, effect.View, effect.World);
+                Vector2 click = ScreenToWorld(mousePos.ToVector2());
                 DebugRenderer.AddText(String.Format("X:{0} Y:{1}", click.X, click.Y), "Last Click Location");
             }
 
