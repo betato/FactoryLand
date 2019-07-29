@@ -196,7 +196,7 @@ namespace FactoryLand
 
         private Vector2 GetTextureMapCoord(int tile, bool top, bool right)
         {
-            return new Vector2(tile / 16f + (right ? 0.0615234375f : 0.0009765625f), (top ? 1f : 0f));
+            return new Vector2(tile / 16f + (right ? 0.0625f : 0), (top ? 1f : 0f));
         }
 
         public void Draw(GraphicsDevice graphicsDevice, BasicEffect effect)

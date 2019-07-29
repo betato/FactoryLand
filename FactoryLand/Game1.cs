@@ -121,6 +121,7 @@ namespace FactoryLand
         {
             fpsCounter.Update(gameTime);
             GraphicsDevice.Clear(Color.Black);
+            GraphicsDevice.SamplerStates[0] = SamplerState.PointWrap;
 
             effect.View = camera.View;
             
