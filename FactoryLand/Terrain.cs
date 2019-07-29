@@ -10,6 +10,10 @@ namespace FactoryLand
 {
     class Terrain
     {
+        public const int LOAD_EXTENT = 1;
+        public const int UNLOAD_EXTENT = 4;
+        public const int GENERARION_EXTENT = 2;
+
         private Generator generator;
         private IntIndexArray<IntIndexArray<Chunk>> chunks = new IntIndexArray<IntIndexArray<Chunk>>();
 
@@ -19,24 +23,8 @@ namespace FactoryLand
         public Terrain()
         {
             generator = new Generator(0);
-            for (int y = -9; y < 9; y++)
-            {
-                for (int x = -9; x < 9; x++)
-                {
-                    Chunk chunk = new Chunk(new Point(x, y));
-                    generator.GenerateChunk(chunk);
-                    AddChunk(x, y, chunk);
-                }
-            }
-            for (int y = -9; y < 9; y++)
-            {
-                for (int x = -9; x < 9; x++)
-                {
-                    GetChunk(x, y).CalculateGraphicsTiles(GetChunk(x, y - 1), GetChunk(x - 1, y), GetChunk(x - 1, y - 1));
-                }
-            }
-
-            GetChunk(0, 0).UpdateGraphics();
+            GenerateChunkGroup(-GENERARION_EXTENT, GENERARION_EXTENT, -GENERARION_EXTENT, GENERARION_EXTENT);
+            LoadChunkGroupGraphics(-LOAD_EXTENT, LOAD_EXTENT, -LOAD_EXTENT, LOAD_EXTENT);
         }
         
         private class IntIndexArray<T>
@@ -78,26 +66,20 @@ namespace FactoryLand
                 {
                     if (index >= 0)
                     {
-                        if (index < positive.Length)
-                        {
-                            positive[index] = value;
-                        }
-                        else
+                        while (index >= positive.Length)
                         {
                             Array.Resize<T>(ref positive, positive.Length * 2);
                         }
+                        positive[index] = value;
                     }
                     else
                     {
                         index = -index;
-                        if (index < negative.Length)
-                        {
-                            negative[index] = value;
-                        }
-                        else
+                        while (index >= negative.Length)
                         {
                             Array.Resize<T>(ref negative, negative.Length * 2);
                         }
+                        negative[index] = value;
                     }
                 }
             }
@@ -130,15 +112,86 @@ namespace FactoryLand
             }
         }
 
-        private void UpdateChunkGroup(int xMin, int xMax, int yMin, int yMax)
+        private void LoadChunkGroupGraphics(int xMin, int xMax, int yMin, int yMax)
         {
             for (int x = xMin; x <= xMax; x++)
             {
                 for (int y = yMin; y <= yMax; y++)
                 {
-                    GetChunk(x, y).UpdateGraphics();
-                    Console.WriteLine("Chunk graphics update at X:" + x + " Y:" + y);
+                    Chunk chunk = GetChunk(x, y);
+                    if (!chunk.GraphicsLoaded)
+                    {
+                        chunk.LoadGraphics();
+                        Console.WriteLine("Chunk graphics loaded at X:" + x + " Y:" + y);
+                    }
                 }
+            }
+        }
+
+        private void UnloadChunkGroupGraphics(int xMin, int xMax, int yMin, int yMax)
+        {
+            for (int x = xMin; x <= xMax; x++)
+            {
+                for (int y = yMin; y <= yMax; y++)
+                {
+                    Chunk chunk = GetChunk(x, y);
+                    if (chunk != null)
+                    {
+                        GetChunk(x, y).UnloadGraphics();
+                        Console.WriteLine("Chunk graphics unloaded at X:" + x + " Y:" + y);
+                    }
+                }
+            }
+        }
+
+        private void GenerateChunkGroup(int xMin, int xMax, int yMin, int yMax)
+        {
+            for (int x = xMin; x <= xMax; x++)
+            {
+                for (int y = yMin; y <= yMax; y++)
+                {
+                    if (GetChunk(x, y) == null)
+                    {
+                        GenerateChunk(x, y);
+                        Console.WriteLine("Chunk generated at X:" + x + " Y:" + y);
+                    }
+                }
+            }
+        }
+
+        public void GenerateChunk(int x, int y)
+        {
+            Chunk chunk = new Chunk(new Point(x, y));
+            generator.GenerateChunk(chunk);
+            AddChunk(x, y, chunk);
+
+            // Calculate graphics of adjecent chunks
+            Chunk n =   GetChunk(x,     y + 1);
+            Chunk ne =  GetChunk(x + 1, y + 1);
+            Chunk e =   GetChunk(x + 1, y);
+            Chunk se =  GetChunk(x + 1, y - 1);
+            Chunk s =   GetChunk(x,     y - 1);
+            Chunk sw =  GetChunk(x - 1, y - 1);
+            Chunk w =   GetChunk(x - 1, y);
+            Chunk nw =  GetChunk(x - 1, y + 1);
+
+            chunk.CalculateAllGraphicsTiles(s, w, sw);
+            if (n != null)
+            {
+                n.CalculateBottomGraphics(chunk);
+                n.CalculateCornerGraphics(chunk, nw, w);
+                n.UpdateGraphics();
+            }
+            if (ne != null)
+            {
+                ne.CalculateCornerGraphics(e, n, chunk);
+                ne.UpdateGraphics();
+            }
+            if (e != null)
+            {
+                e.CalculateSideGraphics(chunk);
+                e.CalculateCornerGraphics(se, chunk, s);
+                e.UpdateGraphics();
             }
         }
 
@@ -156,11 +209,23 @@ namespace FactoryLand
 
             DebugRenderer.AddText(String.Format("X:{0} Y:{1} X:{2} Y:{3}", xMin, yMin, xMax, yMax), "CHUNKY");
 
-            // Update newly loaded chunk graphics
-            UpdateChunkGroup(xMin, lastXMin - 1, yMin, yMax);
-            UpdateChunkGroup(lastXMax + 1, xMax, yMin, yMax);
-            UpdateChunkGroup(xMin, xMax, yMin, lastYMin - 1);
-            UpdateChunkGroup(xMin, xMax, lastYMax + 1, yMax);
+            // Unload old chunk graphics that have moved beyond the unload distance
+            UnloadChunkGroupGraphics(lastXMin + 1 - UNLOAD_EXTENT,  xMin - UNLOAD_EXTENT,           lastYMin - UNLOAD_EXTENT,       lastYMax + UNLOAD_EXTENT);
+            UnloadChunkGroupGraphics(xMax + UNLOAD_EXTENT,          lastXMax - 1 + UNLOAD_EXTENT,   lastYMin - UNLOAD_EXTENT,       lastYMax + UNLOAD_EXTENT);
+            UnloadChunkGroupGraphics(lastXMin - UNLOAD_EXTENT,      lastXMax + UNLOAD_EXTENT,       lastYMin + 1 - UNLOAD_EXTENT,   yMin - UNLOAD_EXTENT);
+            UnloadChunkGroupGraphics(lastXMin - UNLOAD_EXTENT,      lastXMax + UNLOAD_EXTENT,       yMax + UNLOAD_EXTENT,           lastYMax - 1 + UNLOAD_EXTENT);
+
+            // Generate new chunks
+            GenerateChunkGroup(xMin - GENERARION_EXTENT,            lastXMin - 1 - GENERARION_EXTENT,   yMin - GENERARION_EXTENT,           yMax + GENERARION_EXTENT);
+            GenerateChunkGroup(lastXMax + 1 + GENERARION_EXTENT,    xMax + GENERARION_EXTENT,           yMin - GENERARION_EXTENT,           yMax + GENERARION_EXTENT);
+            GenerateChunkGroup(xMin - GENERARION_EXTENT,            xMax + GENERARION_EXTENT,           yMin - GENERARION_EXTENT,           lastYMin - 1 - GENERARION_EXTENT);
+            GenerateChunkGroup(xMin - GENERARION_EXTENT,            xMax + GENERARION_EXTENT,           lastYMax + 1 + GENERARION_EXTENT,   yMax + GENERARION_EXTENT);
+
+            // Load chunk graphics
+            LoadChunkGroupGraphics(xMin - LOAD_EXTENT,          lastXMin - 1 - LOAD_EXTENT, yMin - LOAD_EXTENT,         yMax + LOAD_EXTENT);
+            LoadChunkGroupGraphics(lastXMax + 1 + LOAD_EXTENT,  xMax + LOAD_EXTENT,         yMin - LOAD_EXTENT,         yMax + LOAD_EXTENT);
+            LoadChunkGroupGraphics(xMin - LOAD_EXTENT,          xMax + LOAD_EXTENT,         yMin - LOAD_EXTENT,         lastYMin - 1 - LOAD_EXTENT);
+            LoadChunkGroupGraphics(xMin - LOAD_EXTENT,          xMax + LOAD_EXTENT,         lastYMax + 1 + LOAD_EXTENT, yMax + LOAD_EXTENT);
 
             lastXMin = xMin;
             lastYMin = yMin;

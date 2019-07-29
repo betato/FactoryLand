@@ -17,10 +17,11 @@ namespace FactoryLand
         public Tile[,] Tiles { get; private set; } = new Tile[SIZE, SIZE];
         public int[,] GraphicsTiles { get; set; } = new int[SIZE, SIZE];
 
+        public bool GraphicsLoaded { get; private set; }
         private VertexPositionColorTexture[] graphicsTiles;
-        short vertexIndex;
-        short[] graphicsTileIndices;
-        short indiciesIndex;
+        private short vertexIndex;
+        private short[] graphicsTileIndices;
+        private short indiciesIndex;
 
         public Chunk(Point location)
         {
@@ -29,7 +30,7 @@ namespace FactoryLand
 
         // To be run when chunk is loaded
         // TODO: selectively update graphics tiles when tile is updated
-        public void CalculateGraphicsTiles(Chunk up, Chunk left, Chunk corner)
+        public void CalculateAllGraphicsTiles(Chunk down, Chunk left, Chunk corner)
         {
             for (int tileY = 1; tileY < SIZE; tileY++)
             {
@@ -41,12 +42,19 @@ namespace FactoryLand
                 }
             }
 
-            if (up != null)
+            CalculateBottomGraphics(down);
+            CalculateSideGraphics(left);
+            CalculateCornerGraphics(down, left, corner);
+        }
+
+        public void CalculateBottomGraphics(Chunk down)
+        {
+            if (down != null)
             {
                 for (int tileX = 1; tileX < SIZE; tileX++)
                 {
                     GraphicsTiles[tileX, 0] =
-                        (up.Tiles[tileX - 1, SIZE - 1].Land ? 1 : 0) + (up.Tiles[tileX, SIZE - 1].Land ? 2 : 0) +
+                        (down.Tiles[tileX - 1, SIZE - 1].Land ? 1 : 0) + (down.Tiles[tileX, SIZE - 1].Land ? 2 : 0) +
                         (Tiles[tileX - 1, 0].Land ? 4 : 0) + (Tiles[tileX, 0].Land ? 8 : 0);
                 }
             }
@@ -57,7 +65,10 @@ namespace FactoryLand
                     GraphicsTiles[tileX, 0] = -1;
                 }
             }
+        }
 
+        public void CalculateSideGraphics(Chunk left)
+        {
             if (left != null)
             {
                 for (int tileY = 1; tileY < SIZE; tileY++)
@@ -74,11 +85,14 @@ namespace FactoryLand
                     GraphicsTiles[0, tileY] = -1;
                 }
             }
+        }
 
-            if (up != null && left != null && corner != null)
+        public void CalculateCornerGraphics(Chunk down, Chunk left, Chunk corner)
+        {
+            if (down != null && left != null && corner != null)
             {
                 GraphicsTiles[0, 0] =
-                    (corner.Tiles[SIZE - 1, SIZE - 1].Land ? 1 : 0) + (up.Tiles[0, SIZE - 1].Land ? 2 : 0) +
+                    (corner.Tiles[SIZE - 1, SIZE - 1].Land ? 1 : 0) + (down.Tiles[0, SIZE - 1].Land ? 2 : 0) +
                     (left.Tiles[SIZE - 1, 0].Land ? 4 : 0) + (Tiles[0, 0].Land ? 8 : 0);
             }
             else
@@ -87,9 +101,7 @@ namespace FactoryLand
             }
         }
 
-        // To be run before the chunk is drawn
-        // TODO: clear vbos when chunks are far from loaded area
-        public void UpdateGraphics()
+        public void LoadGraphics()
         {
             graphicsTiles = new VertexPositionColorTexture[NUM_TILES * 4];
             graphicsTileIndices = new short[NUM_TILES * 6];
@@ -128,6 +140,26 @@ namespace FactoryLand
                 {
                     AddTextureSquare(tileX, tileY);
                 }
+            }
+
+            GraphicsLoaded = true;
+        }
+
+        public void UnloadGraphics()
+        {
+            GraphicsLoaded = false;
+            graphicsTiles = null;
+            graphicsTileIndices = null;
+            vertexIndex = -1;
+            indiciesIndex = -1;
+        }
+
+        // Re-loads graphics if graphics are currently loaded
+        public void UpdateGraphics()
+        {
+            if (GraphicsLoaded)
+            {
+                LoadGraphics();
             }
         }
 
