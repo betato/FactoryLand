@@ -9,31 +9,54 @@ namespace FactoryLand
 {
     class Generator
     {
-        private const float LAND_THRESHOLD = -0.1f;
+        public int Seed { get; private set; }
+
         // Layer sizes should be even and greater than 0
         private const int FIRST_LAYER_SIZE = 2;
         private const int SECOND_LAYER_SIZE = 6;
-
-        public int Seed { get; private set; }
-        private Random rng = new Random();
+        private const float LAND_THRESHOLD = -0.1f;
+        
         private Vector2[,] gradients;
+        private Random rng;
+        
+        private readonly byte[] p = new byte[byte.MaxValue * 2];
+        private static readonly Vector2[] vectorMap = new Vector2[byte.MaxValue];
+
+        static Generator()
+        {
+            // Create map from byte to vector
+            double byteToRadians = 2 * Math.PI / byte.MaxValue;
+            double angle;
+            for (int i = 0; i < byte.MaxValue; i++)
+            {
+                angle = i * byteToRadians;
+                vectorMap[i] = new Vector2((float)Math.Cos(angle), (float)(Math.Sin(angle)));
+            }
+        }
 
         public Generator(int seed)
         {
             Seed = seed;
-        }
+            rng = new Random(seed);
 
-        public int Random(int x, int y)
-        {
-            //return ((x * 735632791) % 180 + (y * 694847539) % 180);
-            //return x * 4 + 4 * y;
-            return rng.Next(0, 360);
+            // Shuffle permutation array based on seed
+            for (byte i = 0; i < byte.MaxValue; i++)
+            {
+                p[i] = i;
+            }
+            for (int i = byte.MaxValue - 1; i > 0; i--)
+            {
+                int j = rng.Next(i + 1);
+                byte temp = p[i];
+                p[i + byte.MaxValue] = p[i] = p[j];
+                p[j + byte.MaxValue] = p[j] = temp;
+            }
         }
 
         public void GenerateChunk(Chunk chunk)
         {
             float[,] elevations = new float[Chunk.SIZE, Chunk.SIZE];
-            GenerateLayer(elevations, FIRST_LAYER_SIZE, 1, chunk.Location);
+            GenerateLayer(elevations, FIRST_LAYER_SIZE, 2, chunk.Location);
             GenerateLayer(elevations, SECOND_LAYER_SIZE, 1, chunk.Location);
             for (int y = 0; y < Chunk.SIZE; y++)
             {
@@ -54,8 +77,7 @@ namespace FactoryLand
             {
                 for (int x = 0; x < gridSize; x++)
                 {
-                    int random = Random(x + gridOffset * chunkLocation.X, y + gridOffset * chunkLocation.Y);
-                    gradients[x, y] = new Vector2((float)Math.Cos(MathHelper.ToRadians(random)), (float)Math.Sin(MathHelper.ToRadians(random)));
+                    gradients[x, y] = GetVector(x + gridOffset * chunkLocation.X, y + gridOffset * chunkLocation.Y);
                 }
             }
             // Generate tiles
@@ -67,6 +89,15 @@ namespace FactoryLand
                     elevations[x, y] += Perlin(0.5f + x * scale, 0.5f + y * scale) * weight;
                 }
             }
+        }
+
+        public Vector2 GetVector(int x, int y)
+        {
+            return vectorMap[p[p[p[p[p[p[p[p[
+                ((x >> 24) & 255)] + ((y >> 24) & 255)] +
+                ((x >> 16) & 255)] + ((y >> 16) & 255)] +
+                ((x >> 8) & 255)] + ((y >> 8) & 255)] +
+                (x & 255)] + (y & 255)]];
         }
 
         private float GradientDot(float x, float y, int ix, int iy)
@@ -88,7 +119,7 @@ namespace FactoryLand
             int y1 = y0 + 1;
             
             float sx = Fade(x - x0);
-            float sy = Fade(y - (float)y0);
+            float sy = Fade(y - y0);
 
             // Interpolate between grid gradients
             float ix0 = MathHelper.Lerp(GradientDot(x, y, x0, y0), GradientDot(x, y, x1, y0), sx);
