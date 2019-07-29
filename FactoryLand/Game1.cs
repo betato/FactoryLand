@@ -15,10 +15,11 @@ namespace FactoryLand
         private SpriteBatch spriteBatch;
         private BasicEffect effect; // Kind of a shader
         private InputManager inputManager = new InputManager();
-        FramerateCounter fpsCounter = new FramerateCounter();
+        private FramerateCounter fpsCounter = new FramerateCounter();
 
         private Camera camera;
         private Terrain terrain;
+        private Selector selector;
 
         public Game1()
         {
@@ -77,7 +78,9 @@ namespace FactoryLand
             IsMouseVisible = true;
             Window.AllowUserResizing = true;
             Window.ClientSizeChanged += Window_ClientSizeChanged;
-            
+
+            selector = new Selector();
+
             terrain = new Terrain();
         }
 
@@ -103,7 +106,8 @@ namespace FactoryLand
         protected override void Update(GameTime gameTime)
         {
             inputManager.Update();
-            
+
+            selector.Update(ScreenToWorld(inputManager.MousePos.ToVector2()));
             terrain.UpdateChunkGraphics(GetScreenWorldBounds());
 
             base.Update(gameTime);
@@ -119,9 +123,10 @@ namespace FactoryLand
             GraphicsDevice.Clear(Color.Black);
 
             effect.View = camera.View;
-
-
+            
             terrain.Draw(GraphicsDevice, effect);
+
+            DrawEntities();
 
             DebugRenderer.AddText(
                 "Zoom: " + camera.Zoom.ToString() + "\nLocation: " + camera.Location.ToString() + 
@@ -132,6 +137,39 @@ namespace FactoryLand
 
             DebugRenderer.Draw();
             base.Draw(gameTime);
+        }
+
+        private void DrawEntities()
+        {
+            effect.TextureEnabled = true;
+            RasterizerState rasterizerState = new RasterizerState();
+            rasterizerState.CullMode = CullMode.None;
+            GraphicsDevice.RasterizerState = rasterizerState;
+            DrawEntity(selector);
+            rasterizerState.Dispose();
+        }
+
+        private void DrawEntity(IDrawableEntity entity)
+        {
+            entity.GetVertexData(out VertexPositionColorTexture[] verticies, out short[] indicies, out Texture2D texture);
+            effect.Texture = texture;
+            
+            IndexBuffer indexBuffer = new IndexBuffer(GraphicsDevice, typeof(short), indicies.Length, BufferUsage.WriteOnly);
+            indexBuffer.SetData(indicies);
+            GraphicsDevice.Indices = indexBuffer;
+
+            VertexBuffer vertexBuffer = new VertexBuffer(GraphicsDevice, typeof(VertexPositionColorTexture), verticies.Length, BufferUsage.WriteOnly);
+            vertexBuffer.SetData<VertexPositionColorTexture>(verticies);
+            GraphicsDevice.SetVertexBuffer(vertexBuffer);
+
+            foreach (EffectPass pass in effect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                GraphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, verticies.Length / 2);
+            }
+
+            vertexBuffer.Dispose();
+            indexBuffer.Dispose();
         }
 
         // (x, y, z, w) = (Lower X, Lower Y, Higher X, Higher Y)

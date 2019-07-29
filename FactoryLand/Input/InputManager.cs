@@ -63,6 +63,8 @@ namespace FactoryLand
         private MouseState currentMouse;
         private MouseState previousMouse;
 
+        public Point MousePos { get; private set; }
+
         // Key and mouse button bindings map to InputTypes. These can be user configured key bindings
         public Dictionary<Keys, InputType> KeyBindings { get; private set; } = new Dictionary<Keys, InputType>();
         public Dictionary<MouseAction, InputType> MouseBindings { get; private set; } = new Dictionary<MouseAction, InputType>();
@@ -178,14 +180,14 @@ namespace FactoryLand
             previousMouse = currentMouse;
             currentMouse = Mouse.GetState();
 
-            Point mousePos = currentMouse.Position;
+            MousePos = currentMouse.Position;
             int scrollDelta = currentMouse.ScrollWheelValue - previousMouse.ScrollWheelValue;
 
             // Send keyboard input
             foreach (Keys key in KeyBindings.Keys)
             {
                 InputType inputType = KeyBindings[key];
-                recievers[inputType].SendInput(currentKeyboard.IsKeyDown(key), previousKeyboard.IsKeyDown(key), mousePos, scrollDelta);
+                recievers[inputType].SendInput(currentKeyboard.IsKeyDown(key), previousKeyboard.IsKeyDown(key), MousePos, scrollDelta);
             }
 
             // Send mouse input
@@ -195,31 +197,31 @@ namespace FactoryLand
                 switch (mouseAction)
                 {
                     case MouseAction.RightButton:
-                        recievers[inputType].SendInput(currentMouse.RightButton == ButtonState.Pressed, previousMouse.RightButton == ButtonState.Pressed, mousePos, scrollDelta);
+                        recievers[inputType].SendInput(currentMouse.RightButton == ButtonState.Pressed, previousMouse.RightButton == ButtonState.Pressed, MousePos, scrollDelta);
                         break;
 
                     case MouseAction.LeftButton:
-                        recievers[inputType].SendInput(currentMouse.LeftButton == ButtonState.Pressed, previousMouse.LeftButton == ButtonState.Pressed, mousePos, scrollDelta);
+                        recievers[inputType].SendInput(currentMouse.LeftButton == ButtonState.Pressed, previousMouse.LeftButton == ButtonState.Pressed, MousePos, scrollDelta);
                         break;
 
                     case MouseAction.MiddleButton:
-                        recievers[inputType].SendInput(currentMouse.MiddleButton == ButtonState.Pressed, previousMouse.MiddleButton == ButtonState.Pressed, mousePos, scrollDelta);
+                        recievers[inputType].SendInput(currentMouse.MiddleButton == ButtonState.Pressed, previousMouse.MiddleButton == ButtonState.Pressed, MousePos, scrollDelta);
                         break;
 
                     case MouseAction.XButton1:
-                        recievers[inputType].SendInput(currentMouse.XButton1 == ButtonState.Pressed, previousMouse.XButton1 == ButtonState.Pressed, mousePos, scrollDelta);
+                        recievers[inputType].SendInput(currentMouse.XButton1 == ButtonState.Pressed, previousMouse.XButton1 == ButtonState.Pressed, MousePos, scrollDelta);
                         break;
 
                     case MouseAction.XButton2:
-                        recievers[inputType].SendInput(currentMouse.XButton2 == ButtonState.Pressed, previousMouse.XButton2 == ButtonState.Pressed, mousePos, scrollDelta);
+                        recievers[inputType].SendInput(currentMouse.XButton2 == ButtonState.Pressed, previousMouse.XButton2 == ButtonState.Pressed, MousePos, scrollDelta);
                         break;
 
                     case MouseAction.Move:
-                        recievers[inputType].SendInput(currentMouse.Position != previousMouse.Position, false, mousePos, scrollDelta);
+                        recievers[inputType].SendInput(currentMouse.Position != previousMouse.Position, false, MousePos, scrollDelta);
                         break;
 
                     case MouseAction.Scroll:
-                        recievers[inputType].SendInput(currentMouse.ScrollWheelValue != previousMouse.ScrollWheelValue, false, mousePos, scrollDelta);
+                        recievers[inputType].SendInput(currentMouse.ScrollWheelValue != previousMouse.ScrollWheelValue, false, MousePos, scrollDelta);
                         break;
                 }
             }
