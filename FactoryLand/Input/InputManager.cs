@@ -25,7 +25,8 @@ namespace FactoryLand
         CameraRight = 7,
         CameraZoom = 8,
         
-        Click = 9
+        Select = 9,
+        SecondarySelect = 10
     }
 
     /// <summary>

@@ -238,7 +238,6 @@ namespace FactoryLand
 
         private Vector2 GetTextureMapCoord(int tile, int visualType, bool top, bool right)
         {
-            //return new Vector2(tile / 16f + (right ? 0.0625f : 0), (top ? 0.25f : 0f));
             return new Vector2(tile / 16f + (right ? 0.0625f : 0f), visualType / 4f + (top ? 0.25f : 0f));
         }
 

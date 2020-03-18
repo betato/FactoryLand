@@ -16,6 +16,7 @@ namespace FactoryLand
         private BasicEffect effect; // Kind of a shader
         private InputManager inputManager = new InputManager();
         private FramerateCounter fpsCounter = new FramerateCounter();
+        private List<TileEntity> tileEntities = new List<TileEntity>();
 
         private Camera camera;
         private Terrain terrain;
@@ -42,15 +43,16 @@ namespace FactoryLand
             inputManager.AddInputReciever(this, InputType.CameraLeft, InputState.Down);
             inputManager.AddInputReciever(this, InputType.CameraRight, InputState.Down);
             inputManager.AddInputReciever(this, InputType.CameraZoom, InputState.Down);
-            inputManager.AddInputReciever(this, InputType.Click, InputState.Pressed);
+            inputManager.AddInputReciever(this, InputType.Select, InputState.Pressed);
+            inputManager.AddInputReciever(this, InputType.SecondarySelect, InputState.Pressed);
 
             inputManager.AddKeyBinding(Keys.W, InputType.CameraUp);
             inputManager.AddKeyBinding(Keys.S, InputType.CameraDown);
             inputManager.AddKeyBinding(Keys.A, InputType.CameraLeft);
             inputManager.AddKeyBinding(Keys.D, InputType.CameraRight);
             inputManager.AddMouseBinding(MouseAction.Scroll, InputType.CameraZoom);
-            inputManager.AddMouseBinding(MouseAction.LeftButton, InputType.Click);
-
+            inputManager.AddMouseBinding(MouseAction.LeftButton, InputType.Select);
+            inputManager.AddMouseBinding(MouseAction.RightButton, InputType.SecondarySelect);
 
             base.Initialize();
         }
@@ -146,7 +148,13 @@ namespace FactoryLand
             RasterizerState rasterizerState = new RasterizerState();
             rasterizerState.CullMode = CullMode.None;
             GraphicsDevice.RasterizerState = rasterizerState;
+
+            foreach (TileEntity tileEntity in tileEntities)
+            {
+                DrawEntity(tileEntity);
+            }
             DrawEntity(selector);
+
             rasterizerState.Dispose();
         }
 
@@ -190,10 +198,16 @@ namespace FactoryLand
 
         public void RecieveInput(InputType input, InputState state, Point mousePos, int scrollDelta)
         {
-            if (input == InputType.Click)
+            if (input == InputType.Select)
             {
                 Vector2 click = ScreenToWorld(mousePos.ToVector2());
                 DebugRenderer.AddText(String.Format("X:{0} Y:{1}", click.X, click.Y), "Last Click Location");
+                
+                tileEntities.Add(new TestTileEntity(selector.Tile));
+            }
+            if (input == InputType.SecondarySelect)
+            {
+                tileEntities.RemoveAll((TileEntity entity) => { return entity.Location == selector.Tile; });
             }
 
             int movementSpeed = 10;
