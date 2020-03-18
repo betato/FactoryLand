@@ -14,8 +14,10 @@ namespace FactoryLand
         // Layer sizes should be even and greater than 0
         private const int FIRST_LAYER_SIZE = 2;
         private const int SECOND_LAYER_SIZE = 6;
+
         private const float LAND_THRESHOLD = -0.1f;
-        
+        private const float MOUNTAIN_THRESHOLD = 0.5f;
+
         private Vector2[,] gradients;
         private Random rng;
         
@@ -62,7 +64,9 @@ namespace FactoryLand
             {
                 for (int x = 0; x < Chunk.SIZE; x++)
                 {
-                    chunk.Tiles[x, y] = new Tile(elevations[x, y] >= LAND_THRESHOLD ? true : false);
+                    chunk.Tiles[x, y] = new Tile();
+                    chunk.Tiles[x, y].layerTypes[(int)LayerType.Land] = elevations[x, y] >= LAND_THRESHOLD ? true : false;
+                    chunk.Tiles[x, y].layerTypes[(int)LayerType.Mountain] = elevations[x, y] >= MOUNTAIN_THRESHOLD ? true : false;
                 }
             }
         }

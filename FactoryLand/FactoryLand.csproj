@@ -57,6 +57,7 @@
     <Compile Include="Terrain.cs" />
     <Compile Include="TextureManager.cs" />
     <Compile Include="Tile.cs" />
+    <Compile Include="TileEntity.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="MonoGame.Framework">

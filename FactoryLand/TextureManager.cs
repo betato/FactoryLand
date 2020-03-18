@@ -12,7 +12,9 @@ namespace FactoryLand
     {
         Test = 0,
         Terrain = 1,
-        Selection = 2
+        Selection = 2,
+        Land = 3,
+        Mountain = 4
     }
 
     static class TextureManager
@@ -32,11 +34,13 @@ namespace FactoryLand
             // Single Textures
             textures.Add(TextureId.Test, ContentManager.Load<Texture2D>("Test"));
             textures.Add(TextureId.Terrain, ContentManager.Load<Texture2D>("Terrain//TerrainAtlas"));
+            textures.Add(TextureId.Land, ContentManager.Load<Texture2D>("Terrain//LandAtlas"));
+            textures.Add(TextureId.Mountain, ContentManager.Load<Texture2D>("Terrain//MountainAtlas"));
             textures.Add(TextureId.Selection, ContentManager.Load<Texture2D>("Selection"));
             // Terrains
             for (int i = 0; i <= 15; i++)
             {
-                terrains.Add(i, ContentManager.Load<Texture2D>("Terrain//" + i.ToString()));
+                //terrains.Add(i, ContentManager.Load<Texture2D>("Terrain//" + i.ToString()));
             }
         }
 

@@ -6,15 +6,23 @@ using System.Threading.Tasks;
 
 namespace FactoryLand
 {
+    enum LayerType
+    {
+        Water = 0,
+        Land = 1,
+        Mountain = 2
+    }
+
     class Tile
     {
         public const int PIXEL_LENGTH = 64;
+        public const int NUM_LAYER_TYPES = 3;
+        
+        public bool[] layerTypes = new bool[NUM_LAYER_TYPES];
 
-        public bool Land { get; set; }
-
-        public Tile(bool land)
+        public Tile()
         {
-            Land = land;
+            
         }
     }
 }

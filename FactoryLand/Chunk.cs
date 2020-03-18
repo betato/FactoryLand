@@ -15,30 +15,37 @@ namespace FactoryLand
 
         public Point Location { get; set; }
         public Tile[,] Tiles { get; private set; } = new Tile[SIZE, SIZE];
-        public int[,] GraphicsTiles { get; set; } = new int[SIZE, SIZE];
+        public int[][,] GraphicsTiles { get; set; } = new int[Tile.NUM_LAYER_TYPES][,]; // Change this to a byte array?
 
         public bool GraphicsLoaded { get; private set; }
-        private VertexPositionColorTexture[] graphicsTiles;
-        private short vertexIndex;
-        private short[] graphicsTileIndices;
-        private short indiciesIndex;
+        private VertexPositionColorTexture[][] graphicsVertexTiles = new VertexPositionColorTexture[Tile.NUM_LAYER_TYPES][];
+        private short[] vertexIndex = new short[Tile.NUM_LAYER_TYPES];
+        private short[][] graphicsTileIndices = new short[Tile.NUM_LAYER_TYPES][];
+        private short[] indiciesIndex = new short[Tile.NUM_LAYER_TYPES];
 
         public Chunk(Point location)
         {
             Location = location;
+            for (int layer = 0; layer < Tile.NUM_LAYER_TYPES; layer++)
+            {
+                GraphicsTiles[layer] = new int[SIZE, SIZE];
+            }
         }
 
         // To be run when chunk is loaded
         // TODO: selectively update graphics tiles when tile is updated
         public void CalculateAllGraphicsTiles(Chunk down, Chunk left, Chunk corner)
         {
-            for (int tileY = 1; tileY < SIZE; tileY++)
+            for (int layer = 0; layer < Tile.NUM_LAYER_TYPES; layer++)
             {
-                for (int tileX = 1; tileX < SIZE; tileX++)
+                for (int tileY = 1; tileY < SIZE; tileY++)
                 {
-                    GraphicsTiles[tileX, tileY] =
-                        (Tiles[tileX - 1, tileY - 1].Land ? 1 : 0) + (Tiles[tileX, tileY - 1].Land ? 2 : 0) +
-                        (Tiles[tileX - 1, tileY].Land ? 4 : 0) + (Tiles[tileX, tileY].Land ? 8 : 0);
+                    for (int tileX = 1; tileX < SIZE; tileX++)
+                    {
+                        GraphicsTiles[layer][tileX, tileY] =
+                            (Tiles[tileX - 1, tileY - 1].layerTypes[layer] ? 1 : 0) + (Tiles[tileX, tileY - 1].layerTypes[layer] ? 2 : 0) +
+                            (Tiles[tileX - 1, tileY].layerTypes[layer] ? 4 : 0) + (Tiles[tileX, tileY].layerTypes[layer] ? 8 : 0);
+                    }
                 }
             }
 
@@ -49,109 +56,137 @@ namespace FactoryLand
 
         public void CalculateBottomGraphics(Chunk down)
         {
-            if (down != null)
+            for (int layer = 0; layer < Tile.NUM_LAYER_TYPES; layer++)
             {
-                for (int tileX = 1; tileX < SIZE; tileX++)
+                if (down != null)
                 {
-                    GraphicsTiles[tileX, 0] =
-                        (down.Tiles[tileX - 1, SIZE - 1].Land ? 1 : 0) + (down.Tiles[tileX, SIZE - 1].Land ? 2 : 0) +
-                        (Tiles[tileX - 1, 0].Land ? 4 : 0) + (Tiles[tileX, 0].Land ? 8 : 0);
+                    for (int tileX = 1; tileX < SIZE; tileX++)
+                    {
+                        GraphicsTiles[layer][tileX, 0] =
+                            (down.Tiles[tileX - 1, SIZE - 1].layerTypes[layer] ? 1 : 0) + (down.Tiles[tileX, SIZE - 1].layerTypes[layer] ? 2 : 0) +
+                            (Tiles[tileX - 1, 0].layerTypes[layer] ? 4 : 0) + (Tiles[tileX, 0].layerTypes[layer] ? 8 : 0);
+                    }
                 }
-            }
-            else
-            {
-                for (int tileX = 1; tileX < SIZE; tileX++)
+                else
                 {
-                    GraphicsTiles[tileX, 0] = -1;
+                    for (int tileX = 1; tileX < SIZE; tileX++)
+                    {
+                        GraphicsTiles[layer][tileX, 0] = -1;
+                    }
                 }
             }
         }
 
         public void CalculateSideGraphics(Chunk left)
         {
-            if (left != null)
+            for (int layer = 0; layer < Tile.NUM_LAYER_TYPES; layer++)
             {
-                for (int tileY = 1; tileY < SIZE; tileY++)
+                if (left != null)
                 {
-                    GraphicsTiles[0, tileY] =
-                        (left.Tiles[SIZE - 1, tileY - 1].Land ? 1 : 0) + (Tiles[0, tileY - 1].Land ? 2 : 0) +
-                        (left.Tiles[SIZE - 1, tileY].Land ? 4 : 0) + (Tiles[0, tileY].Land ? 8 : 0);
+                    for (int tileY = 1; tileY < SIZE; tileY++)
+                    {
+                        GraphicsTiles[layer][0, tileY] =
+                            (left.Tiles[SIZE - 1, tileY - 1].layerTypes[layer] ? 1 : 0) + (Tiles[0, tileY - 1].layerTypes[layer] ? 2 : 0) +
+                            (left.Tiles[SIZE - 1, tileY].layerTypes[layer] ? 4 : 0) + (Tiles[0, tileY].layerTypes[layer] ? 8 : 0);
+                    }
                 }
-            }
-            else
-            {
-                for (int tileY = 1; tileY < SIZE; tileY++)
+                else
                 {
-                    GraphicsTiles[0, tileY] = -1;
+                    for (int tileY = 1; tileY < SIZE; tileY++)
+                    {
+                        GraphicsTiles[layer][0, tileY] = -1;
+                    }
                 }
             }
         }
 
         public void CalculateCornerGraphics(Chunk down, Chunk left, Chunk corner)
         {
-            if (down != null && left != null && corner != null)
+            for (int layer = 0; layer < Tile.NUM_LAYER_TYPES; layer++)
             {
-                GraphicsTiles[0, 0] =
-                    (corner.Tiles[SIZE - 1, SIZE - 1].Land ? 1 : 0) + (down.Tiles[0, SIZE - 1].Land ? 2 : 0) +
-                    (left.Tiles[SIZE - 1, 0].Land ? 4 : 0) + (Tiles[0, 0].Land ? 8 : 0);
-            }
-            else
-            {
-                GraphicsTiles[0, 0] = -1;
+                if (down != null && left != null && corner != null)
+                {
+                    GraphicsTiles[layer][0, 0] =
+                        (corner.Tiles[SIZE - 1, SIZE - 1].layerTypes[layer] ? 1 : 0) + (down.Tiles[0, SIZE - 1].layerTypes[layer] ? 2 : 0) +
+                        (left.Tiles[SIZE - 1, 0].layerTypes[layer] ? 4 : 0) + (Tiles[0, 0].layerTypes[layer] ? 8 : 0);
+                }
+                else
+                {
+                    GraphicsTiles[layer][0, 0] = -1;
+                }
             }
         }
 
         public void LoadGraphics()
         {
-            graphicsTiles = new VertexPositionColorTexture[NUM_TILES * 4];
-            graphicsTileIndices = new short[NUM_TILES * 6];
+            graphicsVertexTiles = new VertexPositionColorTexture[Tile.NUM_LAYER_TYPES][];
+            vertexIndex = new short[Tile.NUM_LAYER_TYPES];
+            graphicsTileIndices = new short[Tile.NUM_LAYER_TYPES][];
+            indiciesIndex = new short[Tile.NUM_LAYER_TYPES];
 
-            vertexIndex = 0;
-            indiciesIndex = 0;
-            
-            // Corner
-            if (GraphicsTiles[0, 0] >= 0)
+            for (int layer = 0; layer < Tile.NUM_LAYER_TYPES; layer++)
             {
-                AddTextureSquare(0, 0);
-            }
+                graphicsVertexTiles[layer] = new VertexPositionColorTexture[NUM_TILES * 4];
+                graphicsTileIndices[layer] = new short[NUM_TILES * 6];
 
-            // Bottom
-            if (GraphicsTiles[1, 0] >= 0)
-            {
-                for (int tileX = 1; tileX < SIZE; tileX++)
+                vertexIndex[layer] = 0;
+                indiciesIndex[layer] = 0;
+
+                // Now ignore all 0 index tiles
+
+                // Corner
+                if (GraphicsTiles[layer][0, 0] > 0)
                 {
-                    AddTextureSquare(tileX, 0);
+                    AddTextureSquare(layer, 0, 0);
                 }
-            }
 
-            // Left
-            if (GraphicsTiles[0, 1] >= 0)
-            {
+                // Bottom
+                if (GraphicsTiles[layer][1, 0] >= 0)
+                {
+                    for (int tileX = 1; tileX < SIZE; tileX++)
+                    {
+                        if (GraphicsTiles[layer][tileX, 0] > 0)
+                        {
+                            AddTextureSquare(layer, tileX, 0);
+                        }
+                    }
+                }
+
+                // Left
+                if (GraphicsTiles[layer][0, 1] >= 0)
+                {
+                    for (int tileY = 1; tileY < SIZE; tileY++)
+                    {
+                        if (GraphicsTiles[layer][0, tileY] > 0)
+                        {
+                            AddTextureSquare(layer, 0, tileY);
+                        }
+                    }
+                }
+
+                // Main chunk
                 for (int tileY = 1; tileY < SIZE; tileY++)
                 {
-                    AddTextureSquare(0, tileY);
+                    for (int tileX = 1; tileX < SIZE; tileX++)
+                    {
+                        if (GraphicsTiles[layer][tileX, tileY] > 0)
+                        {
+                            AddTextureSquare(layer, tileX, tileY);
+                        }
+                    }
                 }
-            }
 
-            // Main chunk
-            for (int tileY = 1; tileY < SIZE; tileY++)
-            {
-                for (int tileX = 1; tileX < SIZE; tileX++)
-                {
-                    AddTextureSquare(tileX, tileY);
-                }
+                GraphicsLoaded = true;
             }
-
-            GraphicsLoaded = true;
         }
 
         public void UnloadGraphics()
         {
             GraphicsLoaded = false;
-            graphicsTiles = null;
+            graphicsVertexTiles = null;
             graphicsTileIndices = null;
-            vertexIndex = -1;
-            indiciesIndex = -1;
+            vertexIndex = null;
+            indiciesIndex = null;
         }
 
         // Re-loads graphics if graphics are currently loaded
@@ -163,35 +198,41 @@ namespace FactoryLand
             }
         }
 
-        private void AddTextureSquare(int x, int y)
+        private void AddTextureSquare(int layer, int x, int y)
         {
             int tileX = x + Location.X * SIZE;
             int tileY = y + Location.Y * SIZE;
-            int tileType = GraphicsTiles[x, y];
+            int tileIndex = GraphicsTiles[layer][x, y];
+
+            short layerVertexIndex = vertexIndex[layer];
+            short layerIndiciesIndex = indiciesIndex[layer];
 
             // x and y are shifted downwards by half a unit so that they are drawn between world tiles
             // Bottom Left
-            graphicsTiles[vertexIndex] = new VertexPositionColorTexture(
+            graphicsVertexTiles[layer][layerVertexIndex] = new VertexPositionColorTexture(
                 new Vector3(tileX - 0.5f, tileY - 0.5f, 0), Color.White,
-                GetTextureMapCoord(tileType, false, false));
-            graphicsTileIndices[indiciesIndex++] = vertexIndex++;
+                GetTextureMapCoord(tileIndex, false, false));
+            graphicsTileIndices[layer][layerIndiciesIndex++] = layerVertexIndex++;
             // Bottom Right
-            graphicsTiles[vertexIndex] = new VertexPositionColorTexture(
+            graphicsVertexTiles[layer][layerVertexIndex] = new VertexPositionColorTexture(
                 new Vector3(tileX + 0.5f, tileY - 0.5f, 0), Color.White,
-                GetTextureMapCoord(tileType, false, true));
-            graphicsTileIndices[indiciesIndex++] = vertexIndex++;
+                GetTextureMapCoord(tileIndex, false, true));
+            graphicsTileIndices[layer][layerIndiciesIndex++] = layerVertexIndex++;
             // Top Left
-            graphicsTiles[vertexIndex] = new VertexPositionColorTexture(
+            graphicsVertexTiles[layer][layerVertexIndex] = new VertexPositionColorTexture(
                 new Vector3(tileX - 0.5f, tileY + 0.5f, 0), Color.White,
-                GetTextureMapCoord(tileType, true, false));
-            graphicsTileIndices[indiciesIndex++] = vertexIndex++;
-            graphicsTileIndices[indiciesIndex++] = (short)(vertexIndex - 2);
+                GetTextureMapCoord(tileIndex, true, false));
+            graphicsTileIndices[layer][layerIndiciesIndex++] = layerVertexIndex++;
+            graphicsTileIndices[layer][layerIndiciesIndex++] = (short)(layerVertexIndex - 2);
             // Top Right
-            graphicsTiles[vertexIndex] = new VertexPositionColorTexture(
+            graphicsVertexTiles[layer][layerVertexIndex] = new VertexPositionColorTexture(
                 new Vector3(tileX + 0.5f, tileY + 0.5f, 0), Color.White,
-                GetTextureMapCoord(tileType, true, true));
-            graphicsTileIndices[indiciesIndex++] = vertexIndex++;
-            graphicsTileIndices[indiciesIndex++] = (short)(vertexIndex - 2);
+                GetTextureMapCoord(tileIndex, true, true));
+            graphicsTileIndices[layer][layerIndiciesIndex++] = layerVertexIndex++;
+            graphicsTileIndices[layer][layerIndiciesIndex++] = (short)(layerVertexIndex - 2);
+
+            vertexIndex[layer] = layerVertexIndex;
+            indiciesIndex[layer] = layerIndiciesIndex;
         }
 
         private Vector2 GetTextureMapCoord(int tile, bool top, bool right)
@@ -199,20 +240,20 @@ namespace FactoryLand
             return new Vector2(tile / 16f + (right ? 0.0625f : 0), (top ? 1f : 0f));
         }
 
-        public void Draw(GraphicsDevice graphicsDevice, BasicEffect effect)
+        public void Draw(int layer, GraphicsDevice graphicsDevice, BasicEffect effect)
         {
-            IndexBuffer indexBuffer = new IndexBuffer(graphicsDevice, typeof(short), graphicsTileIndices.Length, BufferUsage.WriteOnly);
-            indexBuffer.SetData(graphicsTileIndices);
+            IndexBuffer indexBuffer = new IndexBuffer(graphicsDevice, typeof(short), graphicsTileIndices[layer].Length, BufferUsage.WriteOnly);
+            indexBuffer.SetData(graphicsTileIndices[layer]);
             graphicsDevice.Indices = indexBuffer;
 
-            VertexBuffer vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColorTexture), graphicsTiles.Length, BufferUsage.WriteOnly);
-            vertexBuffer.SetData<VertexPositionColorTexture>(graphicsTiles);
+            VertexBuffer vertexBuffer = new VertexBuffer(graphicsDevice, typeof(VertexPositionColorTexture), graphicsVertexTiles[layer].Length, BufferUsage.WriteOnly);
+            vertexBuffer.SetData<VertexPositionColorTexture>(graphicsVertexTiles[layer]);
             graphicsDevice.SetVertexBuffer(vertexBuffer);
 
             foreach (EffectPass pass in effect.CurrentTechnique.Passes)
             {
                 pass.Apply();
-                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, graphicsTiles.Length / 2);
+                graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0, 0, graphicsVertexTiles[layer].Length / 2);
             }
 
             vertexBuffer.Dispose();

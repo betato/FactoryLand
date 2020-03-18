@@ -235,22 +235,28 @@ namespace FactoryLand
 
         public void Draw(GraphicsDevice graphicsDevice, BasicEffect effect)
         {
-            effect.TextureEnabled = true;
-            effect.Texture = TextureManager.GetTexture(TextureId.Terrain);
-
             RasterizerState rasterizerState = new RasterizerState();
             rasterizerState.CullMode = CullMode.None;
             graphicsDevice.RasterizerState = rasterizerState;
+            effect.TextureEnabled = true;
 
+            effect.Texture = TextureManager.GetTexture(TextureId.Land);
+            DrawLayer(1, graphicsDevice, effect);
+            effect.Texture = TextureManager.GetTexture(TextureId.Mountain);
+            DrawLayer(2, graphicsDevice, effect);
+
+            rasterizerState.Dispose();
+        }
+
+        public void DrawLayer(int layer, GraphicsDevice graphicsDevice, BasicEffect effect)
+        {
             for (int y = lastYMin; y <= lastYMax; y++)
             {
                 for (int x = lastXMin; x <= lastXMax; x++)
                 {
-                    GetChunk(x, y).Draw(graphicsDevice, effect);
+                    GetChunk(x, y).Draw(layer, graphicsDevice, effect);
                 }
             }
-
-            rasterizerState.Dispose();
         }
     }
 }
