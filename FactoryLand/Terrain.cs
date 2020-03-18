@@ -240,10 +240,12 @@ namespace FactoryLand
             graphicsDevice.RasterizerState = rasterizerState;
             effect.TextureEnabled = true;
 
+            effect.Texture = TextureManager.GetTexture(TextureId.Water);
+            DrawLayer((int)LayerType.Water, graphicsDevice, effect);
             effect.Texture = TextureManager.GetTexture(TextureId.Land);
-            DrawLayer(1, graphicsDevice, effect);
+            DrawLayer((int)LayerType.Land, graphicsDevice, effect);
             effect.Texture = TextureManager.GetTexture(TextureId.Mountain);
-            DrawLayer(2, graphicsDevice, effect);
+            DrawLayer((int)LayerType.Mountain, graphicsDevice, effect);
 
             rasterizerState.Dispose();
         }

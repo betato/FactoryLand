@@ -65,7 +65,8 @@ namespace FactoryLand
                 for (int x = 0; x < Chunk.SIZE; x++)
                 {
                     chunk.Tiles[x, y] = new Tile();
-                    chunk.Tiles[x, y].layerTypes[(int)LayerType.Land] = elevations[x, y] >= LAND_THRESHOLD ? true : false;
+                    chunk.Tiles[x, y].layerTypes[(int)LayerType.Water] = elevations[x, y] < LAND_THRESHOLD ? true : false;
+                    chunk.Tiles[x, y].layerTypes[(int)LayerType.Land] = elevations[x, y] >= LAND_THRESHOLD && elevations[x, y] < MOUNTAIN_THRESHOLD ? true : false;
                     chunk.Tiles[x, y].layerTypes[(int)LayerType.Mountain] = elevations[x, y] >= MOUNTAIN_THRESHOLD ? true : false;
                 }
             }
