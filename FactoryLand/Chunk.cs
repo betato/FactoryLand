@@ -203,6 +203,7 @@ namespace FactoryLand
             int tileX = x + Location.X * SIZE;
             int tileY = y + Location.Y * SIZE;
             int tileIndex = GraphicsTiles[layer][x, y];
+            int visualType = Tiles[x, y].visualType;
 
             short layerVertexIndex = vertexIndex[layer];
             short layerIndiciesIndex = indiciesIndex[layer];
@@ -211,23 +212,23 @@ namespace FactoryLand
             // Bottom Left
             graphicsVertexTiles[layer][layerVertexIndex] = new VertexPositionColorTexture(
                 new Vector3(tileX - 0.5f, tileY - 0.5f, 0), Color.White,
-                GetTextureMapCoord(tileIndex, false, false));
+                GetTextureMapCoord(tileIndex, visualType, false, false));
             graphicsTileIndices[layer][layerIndiciesIndex++] = layerVertexIndex++;
             // Bottom Right
             graphicsVertexTiles[layer][layerVertexIndex] = new VertexPositionColorTexture(
                 new Vector3(tileX + 0.5f, tileY - 0.5f, 0), Color.White,
-                GetTextureMapCoord(tileIndex, false, true));
+                GetTextureMapCoord(tileIndex, visualType, false, true));
             graphicsTileIndices[layer][layerIndiciesIndex++] = layerVertexIndex++;
             // Top Left
             graphicsVertexTiles[layer][layerVertexIndex] = new VertexPositionColorTexture(
                 new Vector3(tileX - 0.5f, tileY + 0.5f, 0), Color.White,
-                GetTextureMapCoord(tileIndex, true, false));
+                GetTextureMapCoord(tileIndex, visualType, true, false));
             graphicsTileIndices[layer][layerIndiciesIndex++] = layerVertexIndex++;
             graphicsTileIndices[layer][layerIndiciesIndex++] = (short)(layerVertexIndex - 2);
             // Top Right
             graphicsVertexTiles[layer][layerVertexIndex] = new VertexPositionColorTexture(
                 new Vector3(tileX + 0.5f, tileY + 0.5f, 0), Color.White,
-                GetTextureMapCoord(tileIndex, true, true));
+                GetTextureMapCoord(tileIndex, visualType, true, true));
             graphicsTileIndices[layer][layerIndiciesIndex++] = layerVertexIndex++;
             graphicsTileIndices[layer][layerIndiciesIndex++] = (short)(layerVertexIndex - 2);
 
@@ -235,9 +236,10 @@ namespace FactoryLand
             indiciesIndex[layer] = layerIndiciesIndex;
         }
 
-        private Vector2 GetTextureMapCoord(int tile, bool top, bool right)
+        private Vector2 GetTextureMapCoord(int tile, int visualType, bool top, bool right)
         {
-            return new Vector2(tile / 16f + (right ? 0.0625f : 0), (top ? 1f : 0f));
+            //return new Vector2(tile / 16f + (right ? 0.0625f : 0), (top ? 0.25f : 0f));
+            return new Vector2(tile / 16f + (right ? 0.0625f : 0f), visualType / 4f + (top ? 0.25f : 0f));
         }
 
         public void Draw(int layer, GraphicsDevice graphicsDevice, BasicEffect effect)

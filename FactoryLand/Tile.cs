@@ -17,12 +17,14 @@ namespace FactoryLand
     {
         public const int PIXEL_LENGTH = 64;
         public const int NUM_LAYER_TYPES = 3;
-        
-        public bool[] layerTypes = new bool[NUM_LAYER_TYPES];
+        public const int NUM_VISUAL_TYPES = 4;
 
-        public Tile()
+        public bool[] layerTypes = new bool[NUM_LAYER_TYPES];
+        public int visualType;
+
+        public Tile(int visualType)
         {
-            
+            this.visualType = visualType;
         }
     }
 }

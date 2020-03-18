@@ -16,7 +16,7 @@ namespace FactoryLand
         private const int SECOND_LAYER_SIZE = 6;
 
         private const float LAND_THRESHOLD = -0.1f;
-        private const float MOUNTAIN_THRESHOLD = 0.5f;
+        private const float MOUNTAIN_THRESHOLD = 0.8f;
 
         private Vector2[,] gradients;
         private Random rng;
@@ -64,7 +64,7 @@ namespace FactoryLand
             {
                 for (int x = 0; x < Chunk.SIZE; x++)
                 {
-                    chunk.Tiles[x, y] = new Tile();
+                    chunk.Tiles[x, y] = new Tile((Tile.NUM_VISUAL_TYPES * RandByte(x, y))/byte.MaxValue); // Generate a random value for visual tile selection
                     chunk.Tiles[x, y].layerTypes[(int)LayerType.Water] = elevations[x, y] < LAND_THRESHOLD ? true : false;
                     chunk.Tiles[x, y].layerTypes[(int)LayerType.Land] = elevations[x, y] >= LAND_THRESHOLD && elevations[x, y] < MOUNTAIN_THRESHOLD ? true : false;
                     chunk.Tiles[x, y].layerTypes[(int)LayerType.Mountain] = elevations[x, y] >= MOUNTAIN_THRESHOLD ? true : false;
@@ -82,7 +82,7 @@ namespace FactoryLand
             {
                 for (int x = 0; x < gridSize; x++)
                 {
-                    gradients[x, y] = GetVector(x + gridOffset * chunkLocation.X, y + gridOffset * chunkLocation.Y);
+                    gradients[x, y] = vectorMap[RandByte(x + gridOffset * chunkLocation.X, y + gridOffset * chunkLocation.Y)];
                 }
             }
             // Generate tiles
@@ -96,13 +96,13 @@ namespace FactoryLand
             }
         }
 
-        public Vector2 GetVector(int x, int y)
+        public byte RandByte(int x, int y)
         {
-            return vectorMap[p[p[p[p[p[p[p[p[
+            return p[p[p[p[p[p[p[p[
                 ((x >> 24) & 255)] + ((y >> 24) & 255)] +
                 ((x >> 16) & 255)] + ((y >> 16) & 255)] +
                 ((x >> 8) & 255)] + ((y >> 8) & 255)] +
-                (x & 255)] + (y & 255)]];
+                (x & 255)] + (y & 255)];
         }
 
         private float GradientDot(float x, float y, int ix, int iy)
