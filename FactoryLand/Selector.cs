@@ -16,7 +16,7 @@ namespace FactoryLand
         public void Update(Vector2 location)
         {
             Location = location;
-            Tile = location.ToPoint();
+            Tile = new Point((int)Math.Floor(location.X), (int)Math.Floor(location.Y));
         }
 
         public void GetVertexData(out VertexPositionColorTexture[] verticies, out short[] indicies, out Texture2D texture)
